@@ -235,6 +235,10 @@ flowchart TD
     D --> E[Esperar nueva instrucción]
 ```
 
+### Plano de planta
+<p align="center">
+  <img src="Images/Plano.jpeg" width="400">
+</p>
 
 
 
