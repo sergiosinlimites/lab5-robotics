@@ -74,7 +74,7 @@ La columna Offset corresponde al ángulo constante que debe añadirse a θᵢ pa
 
  L₁ = 4,5 cm, L₂ = 10,7 cm, L₃ = 10,7 cm y L₄ = 10,88 cm. Estos valores se utilizan  tanto en el toolbox de robótica como en los modelos URDF/XACRO del robot.
 
-### Análisis
+### Descripcion detallada de la solucion planteada y de las funciones utilizadas
 
 Con las medidas finales se construyó la tabla de parámetros Denavit–Hartenberg (DH) del Phantom X Pincher, empleando la misma asignación de marcos mostrada en los ejemplos oficiales de ROS 2 para este robot. Se respetaron los nombres de las articulaciones (`waist`, `shoulder`, `elbow`, `wrist`, `gripper`) para que el modelo fuese compatible con los paquetes de descripción y control utilizados en el ecosistema Phantom:
 
@@ -222,38 +222,18 @@ La interfaz se divide en pestañas que permiten:
 Todo sincronizado entre robot, simulación y toolbox.
 
 ---
-
+### Analisis de movimiento en el espacio de la tarea de manera cualitativa
+Para poder mover el robot en el espacio de la atrea seria necesario resolver la cinematica inversa del robot, sin embargo en esta caso solo seria posible hacerlo para posicion, ya que no se dispone de los suficientes grados de libertad para poder tener una orientacion arbitraria.
 
 ### Diagrama de flujo de acciones del robot
 
  ```mermaid
 flowchart TD
-    A[Inicio del sistema] --> B[Encender Phantom X Pincher<br/>y configurar hardware Dynamixel]
-    B --> C[Iniciar workspace phantom_ws<br/>y lanzar nodos de control]
-    C --> D[Publicar estado articular<br/>(Joint State Publisher)]
-    D --> E[Cargar modelo URDF/XACRO<br/>y visualizar en RViz]
-    E --> F[Medir eslabones con calibrador<br/>y verificar con modelos 3D]
-    F --> G[Construir tabla DH<br/>y validar cinemática directa]
-    G --> H[Sincronizar modelo DH con URDF/RViz]
-    H --> I[Ejecutar script Python<br/>de conexión con ROS 2]
-    I --> J[Control en espacio articular<br/>vía sliders y valores numéricos en HMI]
-    J --> K[Publicar comandos Dynamixel<br/>para cada articulación]
-    K --> L[Robot real se mueve a la configuración solicitada]
-    L --> M[Visualizar movimiento en RViz<br/>y comparar con modelo DH]
-    M --> N{¿Coincide la pose real<br/>con la pose simulada?}
-
-    N -->|Sí| O[Registrar pose válida<br/>y continuar con pruebas]
-    N -->|No| P[Revisar DH, offsets y ejes<br/>Ajustar modelo y repetir]
-
-    O --> Q[Enviar 5 poses predefinidas<br/>desde la HMI]
-    Q --> R[Capturar trayectoria<br/>y posición final del TCP]
-    R --> S[Grabar video<br/>de ejecución de poses]
-    S --> T[Fin del proceso]
-
-    P --> G
-
-
- ```
+    A[Recibir valores de juntas q] --> B[Calcular pose usando cinemática directa]
+    B --> C[Enviar pose calculada a RViz]
+    C --> D[Confirmar pose alcanzada]
+    D --> E[Esperar nueva instrucción]
+```
 
 
 
