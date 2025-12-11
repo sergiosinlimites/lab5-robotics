@@ -1,380 +1,445 @@
-# Lab5_Forward_kinematics_Phantomx100
-<!-- ✦✦✦ FUTURE IS AUTOMATED ✦✦✦ -->
+ # Laboratorio No. 5 – Robótica De desarrollo– Implementacion de la cinematica directa del robot Phantom x100 con Ros2 Humble
 
-<div align="center">
+## Integrantes
 
-<!-- Banner superior "neón" -->
-<img src="https://capsule-render.vercel.app/api?type=waving&height=200&color=0:04041A,50:14213D,100:0A4D68&text=Laboratorio%205&fontColor=E0FBFC&fontSize=60&fontAlign=50&fontAlignY=35&desc=Pincher%20Phantom%20X100%20•%20ROS%20Humble%20•%20RVIZ%20•%20Control%20y%20Conexión%20con%20Python&descSize=20&descAlign=50&descAlignY=55" width="100%" />
+* Sergio Andrés Bolaños Penagos
+* Sergio Felipe Rodriguez Mayorga
 
-<br/>
+## 📝 Introducción
 
-# 🤖 LABORATORIO 5 – PINCHER PHANTOM X100 - ROS HUMBLE - RVIZ
+Este repositorio contiene los resultados y el código desarrollado para el **Laboratorio No. 05** de Robótica [cite: 1, 3][cite_start], con enfoque en la **Cinemática Directa** del manipulador **Phantom X Pincher**[cite: 4, 5]. [cite_start]El robot utiliza servomotores **Dynamixel AX-12** [cite: 7] [cite_start]y se controla y manipula utilizando **ROS Humble** en un entorno de **Ubuntu 22.04 LTS**[cite: 12].
 
-<br/>
+[cite_start]El objetivo principal de esta práctica es establecer la cinemática del robot, obtener sus **parámetros DH**[cite: 36], y desarrollar las herramientas de software necesarias para controlarlo y visualizar su estado. [cite_start]Esto incluye la creación y manipulación de _Joint Controllers_ con ROS [cite: 7, 8, 9][cite_start], la implementación de scripts en Python [cite: 10, 16] [cite_start]para el control de articulaciones, y el desarrollo de una Interfaz Hombre-Máquina (**HMI**) [cite: 57] [cite_start]avanzada para el control en espacio articular y de tarea, con visualización en RViz[cite: 4, 70].
 
-![ROS 2 Humble](https://img.shields.io/badge/ROS%202-Humble-blue?style=for-the-badge)
-![Dynamixel AX-12](https://img.shields.io/badge/Dynamixel%20AX-12-green?style=for-the-badge)
-![Phantom X-100](https://img.shields.io/badge/Phantom%20X-100-red?style=for-the-badge)
+## 🎯 Objetivos
 
-<br/>
+* [cite_start]**Crear todos los Joint Controllers con ROS** para manipular servomotores Dynamixel AX-12 del robot Phantom X Pincher[cite: 7].
+* [cite_start]Manipular los **tópicos de estado y comando** para todos los Joint Controllers del robot[cite: 8].
+* [cite_start]Manipular los **servicios** para todos los Joint Controllers del robot[cite: 9].
+* [cite_start]**Conectar el robot Phantom X Pincher con Python** usando ROS 2[cite: 10, 42].
+* [cite_start]**Medir y modelar** el robot[cite: 23, 35]:
+    * [cite_start]Establecer las longitudes de eslabón (mínima distancia entre dos juntas consecutivas) [cite: 24, 25] [cite_start]y generar un diagrama[cite: 26].
+    * [cite_start]Obtener los **parámetros DH** del robot Phantom X Pincher[cite: 36].
+    * [cite_start]Generar un diagrama del robot con las tablas de parámetros articulares (utilizar software de ilustración)[cite: 37].
+* [cite_start]**Desarrollar Scripts en ROS 2 y Python**[cite: 38, 42]:
+    * [cite_start]Crear un script para mover las articulaciones (_waist, shoulder, elbow, wrist_) secuencialmente entre una posición *home* y una objetivo, utilizando tópicos y servicios Dynamixel en ROS[cite: 38, 39, 40, 41].
+    * [cite_start]Crear scripts en Python que permitan publicar y suscribirse a cada tópico del controlador de articulación, validando los límites articulares[cite: 43, 44].
+    * [cite_start]Crear código Python para enviar la posición angular, graficar la configuración del robot usando las herramientas del _toolbox_, y verificar la coincidencia con el robot real[cite: 46].
+* [cite_start]**Implementar Interfaz de Usuario (HMI)**[cite: 57]:
+    * [cite_start]Mostrar información del grupo, la posición actual, y los valores articulares reales[cite: 58, 59, 61, 62].
+    * [cite_start]Opción para seleccionar y enviar **5 poses predefinidas** al manipulador[cite: 50, 60, 51, 52, 53, 54].
+    * [cite_start]Organizar la interfaz en varias pestañas [cite: 63] con funcionalidades:
+        * [cite_start]**Control en espacio articular** mediante deslizadores (_sliders_)[cite: 64, 65].
+        * [cite_start]**Ingreso numérico articular** (en grados), respetando límites[cite: 66, 67].
+        * [cite_start]**Control en el espacio de la tarea** (TCP) mediante *sliders* para los ejes X, Y, Z y rotaciones alrededor de ellos[cite: 68, 69].
+        * [cite_start]**Visualización en RViz** que imite en tiempo real los movimientos del manipulador real[cite: 70, 71].
+        * [cite_start]**Visualización numérica** en tiempo real de la posición cartesiana (X, Y, Z) y orientación (RPY) del TCP[cite: 72, 73].
 
-<!-- Línea de texto mecanografiado (animado) -->
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=20&pause=1200&duration=3500&color=00E5FF&center=true&vCenter=true&width=1000&lines=Pincher+Phantom+X100+%E2%80%A2+ROS+2+Humble+%E2%80%A2+RVIZ;Control+de+Articulaciones+%E2%80%A2+Servicios+%E2%80%A2+Conexi%C3%B3n+con+Python" alt="typing">
-</p>
+## 💻 Requisitos
 
+| Software/Hardware | Requisito | Fuente |
+| :--- | :--- | :--- |
+| **Sistema Operativo** | [cite_start]Ubuntu versión 22.xx (preferible 22.04 LTS) | [cite: 12] |
+| **Framework de Robótica** | [cite_start]ROS Humble [cite: 4] [cite_start]| [cite: 12] |
+| **Entorno de Trabajo** | [cite_start]Espacio de trabajo para `colcon build` correctamente configurado | [cite: 13] |
+| **Lenguaje de Programación** | [cite_start]Python | [cite: 16] |
+| **Paquete Dynamixel** | [cite_start]`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100.git` | [cite: 14] |
+| **Paquete Robot/RVIZ** | [cite_start]`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ.git` | [cite: 15] |
+| **Hardware** | [cite_start]Un (1) manipulador Phantom X Pincher con su entorno de trabajo | [cite: 17] |
 
----
+## 📦 Entregables
 
-### 🛰️ Descripción general
+[cite_start]El trabajo es **grupal de 2 personas** [cite: 79] [cite_start]y se deberá crear un repositorio en GitHub con el siguiente contenido[cite: 79, 80]:
 
-Este repositorio implementa el **Laboratorio No. 5** de *Robótica 2025-II*: control y conexión del robot **Phantom X100** utilizando **ROS 2 Humble** y **RVIZ**.  
-Se incluyen tópicos de movimiento para las articulaciones, la conexión con los servomotores Dynamixel AX-12, y el control mediante Python para manipular el robot en RVIZ.
-
----
-
-## 🧑‍🚀 Equipo
-
-<!-- ===== INICIO BLOQUE ANIMACIONES EQUIPO (una animación por línea) ===== -->
-
-<!-- Encabezado: Integrantes -->
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=800&size=22&duration=2000&pause=800&color=00E5FF&center=true&vCenter=true&width=1000&repeat=true&v=1&lines=Integrantes%3A" alt="Integrantes">
-</p>
-
-<!-- Nombre 1 -->
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=20&duration=2400&pause=600&color=7F5AF0&center=true&vCenter=true&width=1000&repeat=true&v=1&lines=Jorge+Nicol%C3%A1s+Garz%C3%B3n+Acevedo+%E2%80%94+jngarzona%40unal.du.co" alt="Jorge Nicolás Garzón Acevedo">
-</p>
-
-<!-- Nombre 2 -->
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=20&duration=2400&pause=600&color=7F5AF0&center=true&vCenter=true&width=1000&repeat=true&v=1&lines=Johan+Camilo+Pati%C3%B1o+Mogoll%C3%B3n+%E2%80%94+jopatinom%40unal.edu.co" alt="Johan Camilo Patiño Mogollón">
-</p>
-
-<!-- Nombre 3 -->
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=20&duration=2400&pause=600&color=7F5AF0&center=true&vCenter=true&width=1000&repeat=true&v=1&lines=Gabriel+Eduardo+Bojaca+Munar+%E2%80%94+gbojaca%40unal.edu.co" alt="Gabriel Eduardo Bojaca Munar">
-</p>
-
-<!-- Encabezado: Docentes -->
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=800&size=22&duration=2000&pause=800&color=00E5FF&center=true&vCenter=true&width=1000&repeat=true&v=1&lines=Docentes%3A" alt="Docentes">
-</p>
-
-<!-- Docente 1 -->
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=20&duration=2400&pause=600&color=39D353&center=true&vCenter=true&width=1000&repeat=true&v=1&lines=Manuel+Felipe+Carranza+Montenegro+%E2%80%94+mcarranza%40unal.edu.co" alt="Manuel Felipe Carranza Montenegro">
-</p>
-
-<!-- Docente 2 -->
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=700&size=20&duration=2400&pause=600&color=39D353&center=true&vCenter=true&width=1000&repeat=true&v=1&lines=Pedro+Fabi%C3%A1n+C%C3%A1rdenas+Herrera+%E2%80%94+pfcardenash%40unal.edu.co" alt="Pedro Fabián Cárdenas Herrera">
-</p>
-
-<!-- ===== FIN BLOQUE ANIMACIONES EQUIPO ===== -->
-
-</div>
+1.  [cite_start]**Descripción detallada** de la solución planteada[cite: 81].
+2.  [cite_start]**Diagrama de flujo** de acciones del robot utilizando la herramienta **Mermaid**[cite: 82].
+3.  [cite_start]**Plano de planta** de la ubicación de cada uno de los elementos[cite: 83].
+4.  [cite_start]**Descripción de las funciones** utilizadas[cite: 84].
+5.  [cite_start]**Código del script** utilizado para el desarrollo de la práctica[cite: 85].
+6.  [cite_start]**Vídeo del brazo** alcanzando cada posición solicitada[cite: 86].
+7.  [cite_start]**Vídeo demostración** de uso de la interfaz de usuario (HMI)[cite: 87].
+8.  [cite_start]Los videos deben comenzar con la **introducción oficial del laboratorio LabSIR**[cite: 88].
+9.  [cite_start]**Gráfica digital de las poses** comparándola con una fotografía del brazo real en la misma configuración[cite: 89].
 
 ---
 
+[cite_start]**Nota:** Cada integrante deberá poner la URL del repositorio creado[cite: 79].
+## Movimiento EPSON T3-401S
+1. Descripción de las configuraciones **Home** del **EPSON T3-401S**, indicando la posición de cada articulación.
 
-## Video de simulación y entorno físico
+    La posicion Home por defecto del Robot se puede configurar al gusto, nosotros seleccionamos una posicion en donde la posicion de la articulacion 1 es justo la mitad, permitiendole asi moverse en ambas direcciones como se muestra en la siguiente imagen:
+   ![Descripción del Home](img/Home_description.png)
 
-Video donde se evidencia la simulación en RViz y el comportamiento del robot en el entorno físico (poses y uso de la interfaz gráfica):
+   Las respectivas posiciones articulares se muestran en el siguiente cuadro tomado del software :
+    ![Descripción de Articulaciones del Home](img/Home_joints_values.png)
 
-[![Video de simulación y entorno físico](https://img.youtube.com/vi/65TIC8xtnyM/0.jpg)](https://youtu.be/65TIC8xtnyM)
+    **Aca es importante destacar que los valores articulares se miden en pulsos de encoder**
+   
 
-</div>
+2. Describir el procedimiento y las teclas utilizadas para realizar el movimiento manual del manipulador **EPSON T3-401S** por articulaciones, cambiar a movimientos cartesianos y ejecutar movimientos de traslación y rotación en los ejes X, Y y Z.
+ 
+    **Para esto se oprime F6 lo cual abre el robot manager**, una vez ahi se va a la parte de Jog and teach y alli se puede mover el robot por cualquiera de los metodos descritos previamente como se aprecia a continuacion:
+    - Movimiento por articulaciones:
+    <p align="center">
+    <img src="img/Joint_movement.png" width="600">
+    </p>
+
+    - Movimiento Cartesiano(espacio de la tarea):
+    <p align="center">
+    <img src="img/Cartesian_movement.png" width="800">
+    </p>
+    Como se aprecia en la imagen las opciones de tool, world,Local y ECP permiten realizar movimientos cartesianos, recordando que al ser un robot de 4 grados de libertad(RRRP), no puede realizar rotaciones en torno a los ejes coordenados , solo moverse en XYZ y rotar en torno a Z(respecto a los globales).
+
+     
+
+3 . Detallar los niveles de velocidad del **EPSON T3-401S** para movimientos manuales y su configuración.  Para detallar estos niveles de velocidad se tienen las siguientes configuraciones en el robot manager:
+<p align="center">
+    <img src="img/Power_levels.png" width="800">
+    </p>
+
+ <p align="center">
+    <img src="img/Speed_levels.png" width="800">
+    </p>
+ 
+
+
+## Comparación especificaciones técnicas Motoman MH6, ABB IRB140 y EPSON T3-401S
+ 
+# 📘 Comparación de Manipuladores Industriales  
+## Motoman MH6 • ABB IRB 140 • EPSON T3-401S
+
+Este documento presenta una comparación detallada entre los robots utilizados en los laboratorios de robótica industrial: **Motoman MH6**, **ABB IRB 140** y **EPSON T3-401S**, analizando sus principales características técnicas, aplicaciones y diferencias operativas.
 
 ---
 
-# Laboratorio 5 - Pincher Phantom X100 - ROS Humble - RVIZ
+## 📊 Tabla comparativa de especificaciones técnicas
 
-## Objetivos del laboratorio
+| **Características** | **Motoman MH6** | **ABB IRB140** | **EPSON T3-401S** |
+|---------------------|-----------------|----------------|-------------------|
+| **Tipo de robot** | Articulado 6 DOF | Articulado 6 DOF | SCARA 4 DOF |
+| **Carga máxima** | 6 kg | 6 kg | 3 kg |
+| **Alcance horizontal** | 1422 mm | 700 mm | 400 mm |
+| **Alcance vertical** | 2486 mm | 1050 mm | 200 mm |
+| **Grados de libertad** | 6 | 6 | 4 (X, Y, Z, θ) |
+| **Repetibilidad** | ±0.08 mm | ±0.05 mm | ±0.02 mm |
+| **Velocidad máx. articulaciones** | S: 220°/s<br>L: 200°/s<br>U: 220°/s<br>R: 410°/s<br>B: 410°/s<br>T: 610°/s | S: 150°/s<br>L: 120°/s<br>U: 120°/s<br>R: 180°/s<br>B: 180°/s<br>T: 220°/s | X/Y: 2000 mm/s<br>Z: 700 mm/s<br>θ: 2000°/s |
+| **Temperatura de operación** | 0°C a +45°C | 0°C a +45°C | 5°C a +40°C |
+| **Peso** | 130 kg | 240 kg | 14 kg |
+| **Tipo de montaje** | Piso, techo, pared | Piso, techo | Piso |
+| **Aplicaciones típicas** | Manipulación, procesamiento | Ensamble, manipulación, soldadura | Paletizado ligero, pick-and-place, empaque |
+## 🔗 Referencias
 
-1. **Crear todos los Joint Controllers** con ROS para manipular servomotores Dynamixel AX-12 del robot Phantom X Pincher.
-2. **Manipular los tópicos de estado y comando** para todos los Joint Controllers del robot, entendiendo la diferencia entre:
-   - Tópicos de *estado* (lectura de posición, velocidad, corriente, etc.).
-   - Tópicos de *comando* (referencias de posición/velocidad para cada articulación).
-3. **Manipular servicios ROS 2** asociados a los Joint Controllers (por ejemplo, habilitar/deshabilitar torque, reiniciar controladores o mover a la posición *home*).
-4. **Conectar el robot Phantom X Pincher con Python usando ROS 2**, de forma que:
-   - Pueda enviarse una configuración articular desde Python al robot.
-   - Se reciba el estado articular para validación y visualización.
-   - Se integre con herramientas de modelado (toolbox) para graficar la configuración.
+### **Motoman MH6**
+- https://www.robots.com/industrial-robots/motoman-mh6  
+- https://pdf.directindustry.com/pdf/yaskawa-europe-gmbh/mh6d-mh6f/14473-309337.html  
 
-## Requisitos
-- Ubuntu versión 22.xx preferible 22.04 LTS con ROS Humble.
-- Espacio de trabajo para `colcon build` correctamente configurado.
-- Paquetes de Dynamixel Workbench: [Dynamixel Workbench GitHub](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100.git)
-- Paquete del robot Phantom X: [Phantom X GitHub](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ.git)
-- Python.
-- Un manipulador Phantom X Pincher con su entorno de trabajo.
+### **ABB IRB 140**
+- https://library.e.abb.com/public/a7121292272d40a9992a50745fdaa3b2/3HAC041346%20PS%20IRB%20140-en.pdf  
+- https://www.manuallib.com/download/pdf/2014/0624/abb-irb140-industrial-robot-datasheet.pdf  
+- https://www.scribd.com/document/649705967/IRB-140-Type-C-Product-Manual-3HAC027400-001-RevC-En  
 
-
-## Desarrollo del ejercicio en el laboratorio
-
-### Mediciones
-
-Las longitudes de cada eslabón del Phantom X Pincher se midieron sobre el manipulador real empleando un calibrador digital, tomando como referencia los ejes de rotación definidos en la guía del laboratorio. Para garantizar coherencia con el modelo CAD y con la posterior simulación, estas medidas se contrastaron con la información geométrica disponible en el repositorio de modelos 3D del kit:
-
-- [`3DModels_KIT_Phantom_Pincher_X100`](https://github.com/labsir-un/3DModels_KIT_Phantom_Pincher_X100)
-
-En particular, se revisaron las carpetas asociadas al **Phantom X Pincher** y al **kit de ensamble**, donde se almacenan las mallas y planos del robot (archivos `.stl` y documentación en PDF). Con ello se verificó que las longitudes físicas de los eslabones coincidieran con la segmentación usada en las mallas (base, hombro, brazo superior, antebrazo y gripper), lo que permitió después reutilizar esas mismas mallas en el modelo URDF/XACRO sin inconsistencias de escala ni de alineamiento.
-
-A partir de las medidas definitivas se elaboró un diagrama esquemático análogo al de la Figura 2 de la guía, rotulando cada eslabón, su longitud efectiva y la posición relativa de las juntas.
-
-
-![Posicion_Home](https://github.com/user-attachments/assets/15f08f85-9d68-445b-8a68-e5012e64596a)
-
-![Modelado](https://github.com/user-attachments/assets/feb1e75e-651d-48e9-869d-ef925b694ff7)
-
-
-### Tabla de parámetros Denavit–Hartenberg del manipulador
-
-La siguiente tabla resume el modelo cinemático del brazo utilizado en el laboratorio, construido a partir de la posición HOME (eslabones verticales L₁, L₂, L₃ y L₄).  
-Los parámetros dᵢ y aᵢ se expresan en función de las longitudes medidas de cada eslabón, mientras que los ángulos αᵢ corresponden a la rotación entre los ejes zᵢ y zᵢ₊₁.  
-La columna **Offset** indica el desplazamiento angular fijo que se suma a θᵢ para que la postura HOME coincida con la configuración física del robot.
-
-| Junta i | θᵢ  | dᵢ  | aᵢ  | αᵢ   | Offset |
-|--------|-----|-----|-----|------|--------|
-| 1      | θ₁  | L₁  | 0   | −90° | −90°   |
-| 2      | θ₂  | 0   | L₂  | 0°   | −80°   |
-| 3      | θ₃  | 0   | L₃  | 0°   | 0°     |
-| 4      | θ₄  | 0   | L₄  | 0°   | 0°     |
-
-> Nota: en el diagrama de HOME se midieron aproximadamente  
-> L₁ = 4,5 cm, L₂ = 10,7 cm, L₃ = 10,7 cm y L₄ = 10,88 cm.  
-> Estos valores pueden utilizarse tanto en el toolbox de robótica como en los modelos URDF/XACRO del robot.
-
-
-
-### Análisis
-
-Con las dimensiones finales se construyó la tabla de parámetros Denavit–Hartenberg (DH) del Phantom X Pincher, siguiendo la convención de marcos utilizada en los ejemplos de ROS 2 para este robot. La asignación de marcos y los nombres de las juntas (`waist`, `shoulder`, `elbow`, `wrist`, `gripper`) se alinearon con la estructura propuesta en los paquetes de descripción y control del ecosistema Phantom:
-
-- Guía de control en ROS 2 Humble para el Phantom X Pincher:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100)
-- Guía de descripción y visualización en RViz:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ)
-
-En la guía de RViz se detalla la creación de un paquete de descripción `pincher_description` con un archivo `robot.xacro` y un conjunto de mallas segmentadas (`px100_1_base.stl`, `px100_2_shoulder.stl`, `px100_3_upper_arm.stl`, etc.) que se organizan dentro de una carpeta `meshes/`. A partir de esa referencia se ajustaron los parámetros \(a_i\), \(\alpha_i\), \(d_i\) y \(\theta_i\) para que:
-
-- La cinemática usada en la tabla DH fuese compatible con la cadena de transformaciones codificada en el `robot.xacro`.
-- La orientación de cada marco DH fuera consistente con la que utiliza `robot_state_publisher` para publicar `/robot_description`.
-
-El resultado fue una tabla DH que sirve tanto para el toolbox de robótica en Python como para la descripción URDF/XACRO del robot, garantizando que la pose cartesiana obtenida analíticamente coincida con la visualización en RViz.
-
-### Organización del repositorio y workspace `phantom_ws`
-
-Todo el desarrollo se consolidó en el repositorio de proyecto final:
-
-- [`sergiosinlimites/robotica-proyecto-final`](https://github.com/sergiosinlimites/robotica-proyecto-final)
-
-Dentro de este repositorio se creó un workspace ROS 2 específico para el Phantom X Pincher:
-
-- Workspace: `phantom_ws`
-- Código fuente: `phantom_ws/src`
-
-La organización de `phantom_ws/src` sigue la filosofía propuesta en los repositorios del kit oficial:
-
-- [`KIT_Phantom_X_Pincher_ROS2`](https://github.com/labsir-un/KIT_Phantom_X_Pincher_ROS2)
-- [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100)
-- [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ)
-
-Siguiendo esas referencias, el workspace se estructuró en paquetes que agrupan:
-
-- **Descripción del robot**: modelo URDF/XACRO y mallas importadas desde `3DModels_KIT_Phantom_Pincher_X100`.
-- **Control articular y conexión Dynamixel**: nodos en Python basados en el paquete `pincher_control` descrito en las guías 04 (control del robot) y 05 (control + RViz).
-- **Integración con RViz y MoveIt 2**: paquetes y archivos de lanzamiento para cargar el modelo, la escena y la configuración de planificación.
-- **Interfaz gráfica (HMI)**: scripts en Python que implementan las pestañas de control articular, cartesiano, visualización en RViz y lectura de estados.
-
-De esta forma, `robotica-proyecto-final` actúa como contenedor de todo el entorno funcional del laboratorio (código, configuración y herramientas) sobre un único workspace `phantom_ws`, compatible con la estructura propuesta en los repositorios de referencia del curso.
-
-### Configuración del entorno (Setup)
-
-La preparación del entorno se realizó tomando como base tres fuentes principales:
-
-- Sección **Setup** del kit:  
-  [`KIT_Phantom_X_Pincher_ROS2`](https://github.com/labsir-un/KIT_Phantom_X_Pincher_ROS2)
-- Guía 04 – creación del paquete `pincher_control` en ROS 2 Humble:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100)
-- Guía actualizada de **Setup** para ROS 2 Jazzy/Humble:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_Updated/guias/Setup`](https://github.com/ElJoho/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_Updated/tree/jazzy/guias/Setup)
-
-A partir de esas guías se siguió el siguiente flujo, adaptado al proyecto final:
-
-1. **Creación del workspace y clonación de paquetes base**  
-   Se creó el workspace `phantom_ws` y dentro de `src` se clonaron los repositorios de ejemplo recomendados en las guías (demos de simulación y/o paquetes de control), para utilizarlos como plantilla de estructura y archivos de configuración.
-
-2. **Instalación de dependencias**  
-   Se instalaron las dependencias de ROS 2 y de la librería `dynamixel_sdk` tal como se indica en las guías de control (comandos `rosdep install`, paquetes `ros-humble-dynamixel-sdk`, `python3-serial`, etc.). Esto permitió compilar el workspace con `colcon build` sin conflictos de dependencias.
-
-3. **Configuración de hardware**  
-   Se configuró el puerto serie (`/dev/ttyUSB0` o similar) y se añadió el usuario al grupo `dialout` para tener permisos sobre el adaptador USB2Dynamixel, siguiendo los pasos documentados en la Guía 04. También se verificó que los servomotores AX-12A/XL-430 tuvieran IDs únicos y compatibles con las listas definidas en los scripts de control.
-
-4. **Scripts de lanzamiento**  
-   Aprovechando la estructura propuesta en los repositorios del kit, se añadieron scripts y archivos `launch` dentro de `phantom_ws/src` para:
-   - Lanzar el nodo de control y la HMI.
-   - Abrir RViz con el modelo del robot y el `robot_state_publisher`.
-   - Cargar la configuración de MoveIt 2 para planificación de trayectorias.
-
-Con esta preparación, el workspace `phantom_ws` quedó listo para compilar y lanzar el sistema completo (robot real + RViz + MoveIt + HMI) desde un único entorno.
-
-### Implementación en ROS 2 y MoveIt
-
-El desarrollo de la parte de simulación y planificación tomó como referencia directa las guías de control y visualización:
-
-- Control y workspace base:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100)
-- Control + RViz + HMI con `pincher_description` y `pincher_control`:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ)
-- Kit general con secciones RVIZ y MoveIt:  
-  [`KIT_Phantom_X_Pincher_ROS2`](https://github.com/labsir-un/KIT_Phantom_X_Pincher_ROS2)
-- Guía actualizada de MoveIt 2:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_Updated/guias/Moveit`](https://github.com/ElJoho/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_Updated/tree/jazzy/guias/Moveit)
-
-1. **Descripción del robot y RViz**  
-   - Se construyó un paquete de descripción análogo a `pincher_description`, que importa las mallas del Phantom desde `3DModels_KIT_Phantom_Pincher_X100` y define la cinemática en un archivo `robot.xacro`.  
-   - Se creó un archivo `display.launch.py` que lanza `robot_state_publisher` y RViz con una configuración predefinida, tal como se propone en la guía de RViz, cargando el modelo 3D del robot y leyendo de `/joint_states`.
-
-2. **Configuración de MoveIt 2**  
-   - Siguiendo la guía de MoveIt actualizada, se definió un grupo de planificación que incluye las articulaciones `waist`, `shoulder`, `elbow`, `wrist` y el `gripper` como efector final.  
-   - Se configuraron los límites articulares, la escena de colisión y las plantillas de planificación para poder generar y ejecutar trayectorias desde la interfaz de *Motion Planning* en RViz.
-
-3. **Nodos de control en ROS 2**  
-   - Partiendo del paquete `pincher_control` descrito en la Guía 04 (control básico de servomotores con `dynamixel_sdk`), se integraron las extensiones de la Guía 05: publicación en `/joint_states`, conversión de pasos Dynamixel a radianes (`dxl_to_radians`) y corrección de signos por articulación para que la simulación y el robot real se muevan de forma coherente.  
-   - Estos nodos se adaptaron y ubicaron dentro de `phantom_ws/src`, integrándolos con el resto de paquetes del proyecto final.
-
-4. **Secuencias de movimiento y pruebas con MoveIt 2**  
-   - Se programó una rutina de movimiento entre una postura de *home* y varias posturas objetivo, ejecutada de forma secuencial desde la base hasta el efector final, con pequeñas pausas entre articulaciones.  
-   - Desde MoveIt 2 se planearon trayectorias hacia las poses de prueba, verificando la ausencia de colisiones y la factibilidad cinemática antes de enviar los comandos al robot real.
-
-Gracias a esta integración, los mismos valores articulares se emplean en el controlador de los servos, en las trayectorias de MoveIt 2 y en la visualización de RViz, todo dentro del workspace `phantom_ws`.
-
-### Conexión con Python
-
-La conexión directa con ROS 2 y los servomotores se resolvió mediante scripts en Python, basados en las guías de control:
-
-- Nodo `pincher_control` con `dynamixel_sdk` y `rclpy` de la Guía 04:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100)
-- Extensiones con publicación de `/joint_states` y GUI en Tkinter de la Guía 05:  
-  [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ)
-
-Sobre esa base se implementaron dos tipos de scripts:
-
-- **Publicadores de comando articular**  
-  Scripts que reciben vectores de ángulos \([q_1, \dots, q_5]\) en grados, los convierten a unidades de los Dynamixel (0–4095 o radianes, según configuración), verifican los límites de cada junta y publican en los tópicos de control de cada articulación.
-
-- **Lectores de estado articular**  
-  Scripts suscriptores a `/joint_states` y/o a los tópicos de estado de los controladores, que leen las posiciones actuales articular por articular, las convierten a grados y devuelven la configuración \([q_1, \dots, q_5]\). Estos scripts alimentan la HMI, permiten diagnosticar el comportamiento de los servos y sirven de puente entre el robot real y el modelo cinemático usado en el toolbox.
-
-Todos estos scripts se integraron en `phantom_ws/src` dentro del repositorio `robotica-proyecto-final`, manteniendo la misma lógica de paquetes e `entry_points` que las guías de referencia.
-
-### Python + ROS + Toolbox
-
-Sobre la tabla DH construida al inicio se desarrolló un módulo de Python que integra:
-
-- El modelo cinemático directo del Phantom X Pincher.
-- La lectura de configuraciones articulares desde ROS 2.
-- La representación gráfica del manipulador en un entorno 3D tipo toolbox de robótica.
-
-Este módulo adopta la nomenclatura de juntas (`waist`, `shoulder`, `elbow`, `wrist`, `gripper`) y el rango de movimiento que se documentan en las guías del kit y en el paquete `pincher_description`, de forma que:
-
-1. Se recibe un vector \([q_1, q_2, q_3, q_4, q_5]\) (en grados o radianes) y se corrigen offsets y signos según la convención usada en los Dynamixel.
-2. Se calcula la pose cartesiana del TCP (posición y orientación RPY).
-3. Se genera una gráfica 3D de la configuración, comparable con la visualización en RViz/MoveIt 2.
-4. Se actualiza la figura en función de las lecturas de `/joint_states`, permitiendo comparar la pose digital (toolbox) con la pose real del manipulador.
-
-### Poses de prueba
-
-Para validar el modelo, la configuración de MoveIt 2 y la implementación de los nodos de control, se ensayaron de forma sistemática las siguientes configuraciones articulares \((q_1, q_2, q_3, q_4, q_5)\) en grados:
-
-1. \(0, 0, 0, 0, 0\)  
-2. \(25, 25, 20, -20, 0\)  
-3. \(-35, 35, -30, 30, 0\)  
-4. \(85, -20, 55, 25, 0\)  
-5. \(80, -35, 55, -45, 0\)
-
-Cada una de estas poses se probó:
-
-- En el robot físico, verificando que ninguna articulación excediera sus límites y que no hubiera interferencia con la mesa ni con otros elementos.
-- En MoveIt 2, comprobando la existencia de soluciones cinemáticas y trayectorias libres de colisión.
-- En la representación del toolbox, comparando la pose cartesiana calculada con la que observa el operador en RViz.
-
-### Interfaz de Usuario (HMI)
-
-La HMI desarrollada en el proyecto está fuertemente inspirada en la interfaz Tkinter descrita en la Guía 05 del repositorio de RViz, donde se propone una ventana con pestañas para:
-
-- Sliders de control en tiempo real.
-- Entrada numérica de comandos.
-- Lanzamiento y cierre de RViz desde botones dedicados.
-
-Tomando como punto de partida esa estructura, la HMI del proyecto final (ubicada en `phantom_ws/src` de `robotica-proyecto-final`) se extendió para incluir:
-
-1. **Panel de identificación**  
-   Muestra nombres, logos y datos de contacto de los integrantes del grupo, siguiendo la estética institucional del curso.
-
-2. **Visualización de la última posición enviada**  
-   Incluye una imagen/captura asociada a la última configuración enviada al robot (ya sea foto del manipulador o captura de RViz), utilizada también para documentar resultados.
-
-3. **Selección de poses predefinidas**  
-   Botones que cargan directamente las cinco poses de prueba y envían los vectores articulares correspondientes al nodo de control, reutilizando la misma lógica que se describe en los scripts de `pincher_control`.
-
-4. **Lectura de ángulos articulares en tiempo real**  
-   Un panel numérico que muestra la lectura actual de cada junta a partir de `/joint_states`, sincronizada con el movimiento del robot.
-
-5. **Visualización de la posición actual**  
-   Un área gráfica que refleja la pose actual del manipulador, facilitando la comparación entre el comando enviado y la configuración realmente alcanzada.
-
-### Funcionalidades de la interfaz gráfica
-
-La HMI se organizó en varias pestañas, ampliando las ideas de la GUI original de `pincher_control`:
-
-- **Pestaña de control en espacio articular**  
-  Contiene sliders para cada articulación, con límites configurados según las especificaciones del Phantom. Al mover un slider:
-  1. Se actualiza el valor numérico mostrado.
-  2. Se envía el comando articular vía ROS 2 al nodo de control.
-  3. Se actualiza en paralelo la visualización en RViz/MoveIt y en la propia HMI.
-
-- **Pestaña de ingreso numérico articular**  
-  Permite escribir directamente los valores de \(q_1\) a \(q_5\) en grados. Antes de publicar:
-  1. Se validan los rangos de seguridad.
-  2. Se corrigen o se rechazan valores fuera de rango.
-  3. Se sincronizan tanto la vista de RViz como los indicadores numéricos.
-
-- **Pestaña de control en el espacio de la tarea**  
-  Brinda controles para desplazar el TCP en \(X, Y, Z\) y ajustar la orientación en RPY. Internamente:
-  1. Se resuelve la cinemática inversa con el modelo DH.
-  2. Se comprueba la alcanzabilidad y el cumplimiento de límites.
-  3. Se envía la nueva configuración articular al robot real y a la simulación.
-
-- **Pestaña de visualización en RViz/MoveIt**  
-  Reutiliza la lógica propuesta en la Guía 05 para lanzar y cerrar RViz desde la propia HMI, ejecutando comandos tipo `ros2 launch pincher_description display.launch.py`. El modelo del Phantom se actualiza con los valores de `/joint_states`, logrando una visualización sincronizada del movimiento real.
-
-- **Pestaña de visualización numérica de la pose cartesiana**  
-  Muestra en tiempo real la posición \(X, Y, Z\) y la orientación (Roll–Pitch–Yaw) del TCP calculadas a partir del modelo cinemático y de la configuración articular actual. Esta información es clave para comparar resultados entre:
-  - El modelo analítico (toolbox).
-  - La simulación en RViz/MoveIt.
-  - El comportamiento del robot físico.
-
-En conjunto, el desarrollo del laboratorio se apoya en los siguientes repositorios de referencia, de los cuales se adaptaron estructuras de paquetes, modelos 3D, nodos de control, guías de configuración y ejemplos de GUI:
-
-- [`KIT_Phantom_X_Pincher_ROS2`](https://github.com/labsir-un/KIT_Phantom_X_Pincher_ROS2)  
-- [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100)  
-- [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ`](https://github.com/labsir-un/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_RVIZ)  
-- [`3DModels_KIT_Phantom_Pincher_X100`](https://github.com/labsir-un/3DModels_KIT_Phantom_Pincher_X100)  
-- [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_Updated/guias/Setup`](https://github.com/ElJoho/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_Updated/tree/jazzy/guias/Setup)  
-- [`ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_Updated/guias/Moveit`](https://github.com/ElJoho/ROB_Intro_ROS2_Humble_Phantom_Pincher_X100_Updated/tree/jazzy/guias/Moveit)  
-- [`sergiosinlimites/robotica-proyecto-final/phantom_ws/src`](https://github.com/sergiosinlimites/robotica-proyecto-final/tree/main/phantom_ws/src)
-
-
----
-## Plano de planta de la ubicación de cada uno de los elementos
----
-## Diagrama de flujo de acciones del robot utilizando la herramienta Mermaid
-
-
-
-
-
+### **EPSON T3-401S**
+- https://epson.com/robots/scara/t3  
+- https://files.support.epson.com/docid/cpd5/cpd57658.pdf  
+- https://files.support.epson.com/pdf/rbt_t3/rbt_t3_um.pdf  
+- https://files.support.epson.com/docid/cpd5/cpd58541.pdf  
+
+
+## Características EPSON RC+ 7.0
+
+### Tipos de trayectorias
+
+* Jump / Jump3 (trayectoria con arco): movimientos “en salto” que usan una tabla de arcos (Arch) con pares de parámetros Depart Z y Approach Z (siete presets editables en Robot Manager). 
+
+* CP/ECP (trayectoria de Punto Central): opción de movimiento CP On donde se controla el TCP relativo a un punto de control externo (ECP); se configura en Robot Manager ECP.
+
+* Curvas/Arcos (Arc/Curve): movimientos curvilíneos para interpolaciones suaves (arcos y curvas definidas por puntos), típicamente en modo CP/ECP.
+
+* Pallet (patrones de paletizado): definición de matrices (p.ej., 6×5) desde Robot Manager -> Pallets y uso del comando Pallet en el programa para indexar posiciones.
+
+### ¿Qué hace EPSON RC+ 7.0 para mover el manipulador?
+
+Lo que hace EPSON RC+ 7.0 es que se comunica con el controlador del robot por USB o Ethernet, soportando múltiples controladores e incluso sesiones simultáneas.
+
+Modos de operación del sistema:
+
+1. Esclavo: el controlador es gobernado por PC vía E/S o bus de campo.
+
+2. Independiente: el controlador gestiona robot y periféricos; RC+ muestra la ventana del operador en AUTO.
+
+## Comparación RC+ 7.0, RobotStudio y RoboDK
+
+
+| **Criterio** | **RoboDK** | **RobotStudio** | **EPSON RC+ 7.0** |
+|-------------|------------|-----------------|--------------------|
+| **Fabricante / desarrollador** | RoboDK Inc. (Canadá) | ABB Robotics | Epson Robots (Seiko Epson Corporation) |
+| **Compatibilidad** | Multimarca (Yaskawa, ABB, KUKA, Fanuc, UR, etc.) | Exclusivo para robots ABB (aunque con más trabajo se pueden incluir otros) | Exclusivo para robots EPSON |
+| **Lenguaje de programación** | Python o bloques; genera código para INFORM, RAPID, KRL, etc. | RAPID | SPEL+ |
+| **Simulación** | 3D completa, cinemática, colisiones, tiempos de ciclo | 3D con Virtual Controller | Simulación 2D/3D EPSON |
+| **Comunicación con robot real** | Ethernet/IP, archivos .JBI/.mod | Conexión con IRC5/OmniCore | Conexión directa por Ethernet/USB |
+| **Precisión** | Alta (depende de postprocesador) | Muy alta | Alta para robots EPSON |
+| **Programación offline** | Sí | Sí | Sí (SPEL+) |
+| **Automatización** | Integración con visión y sensores | Librerías industriales | Visión EPSON, E/S digitales |
+| **Gemelo digital** | Sí | Requiere módulos extra | Simulación cercana al robot EPSON |
+| **Ventajas** | Multimarca, Python, fácil de usar | Integración total ABB | Integración nativa EPSON |
+| **Limitaciones** | Menor fidelidad si no está bien programado | Solo ABB | Solo EPSON |
+| **Aplicaciones típicas** | Docencia, investigación | Industria ABB | Industria EPSON |
+| **Licencia** | Gratuita + comercial | Comercial | Incluido con robots EPSON |
+
+RoboDK es flexible y multimarca, ideal para educación o uso en robots no tan comerciales. RobotStudio es el entorno oficial para ABB, con precisión industrial. EPSON RC+ 7.0 es el entorno nativo para robots EPSON, facilitando programación en SPEL+, configuración de E/S y simulación de trayectorias del T3‑401S.
+
+- **EPSON RC+ 7.0:** Herramienta principal en el laboratorio para T3‑401S. Nos permite programar, simular y controlar el robot real.
+- **RoboDK:** Software para experimentar con robots de múltiples marcas y robótica con Python.
+- **RobotStudio:** Es el más completo y avanzado de todos pero con la limitante de que solo funciona para robots de la marca ABB.
+
+## Diseño Gripper
+Se diseñó el siguiente soporte para un gripper neumático, como se puede ver, cuenta con una base la cual se engancha alrededor del eje del robot y se ajusta con un tornillo y tuerca con el fin de sujetarlo externamente y evitar complicaciones en su montaje.
+
+![Gripper Neumático Diseñado](img/AdaptadorGripper.png)\
+Adaptador Gripper Neumático Diseñado
+
+A continuación se muestran algunos de los planos más importantes, sin embargo los planos completos se encunetran en el siguiente [PDF](./PlanosActu.pdf)
+ 
+![Gripper Neumático 3D](img/Gripper3D.png)\
+Plano de vista isométrica con partes del gripper.
+
+![Gripper Base](img/GripperBase.png)\
+Plano de la base del soporte.
+
+![Gripper Base](img/GripperVentosa.png)\
+Plano de la ventosa utilizada.
+
+
+## Diseño y programación de trayectoria
+
+```text
+' ==============================================
+'  Dos huevos en patrón de CABALLO (matriz 6x5)
+'  EPSON RC+ 7.0 / T3-401S
+'  - Jump hace bajar/subir.
+'  - Out_9 controla la ventosa.
+'  - Imprime "regresa a" y "va a", y el total visitado.
+' ==============================================
+
+Global Integer i
+Global Integer k
+Global Integer curA
+Global Integer curB
+Global Integer pathA(15)
+Global Integer pathB(15)
+
+' --- Para impresión y conteo ---
+Global Integer visited(30)
+Global Integer visitedCount
+Global Integer r, c   ' temporales para fila/col de impresión
+
+Function CargarRutas
+    ' ----------------- Huevo 1 (empieza en 1) -----------------
+    pathA(1) = 1
+    pathA(2) = 9
+    pathA(3) = 5
+    pathA(4) = 18
+    pathA(5) = 29
+    pathA(6) = 21
+    pathA(7) = 25
+    pathA(8) = 14
+    pathA(9) = 3
+    pathA(10) = 7
+    pathA(11) = 20
+    pathA(12) = 28
+    pathA(13) = 24
+    pathA(14) = 11
+    pathA(15) = 22
+
+    ' ----------------- Huevo 2 (empieza en 30) ----------------
+    pathB(1) = 30
+    pathB(2) = 17
+    pathB(3) = 6
+    pathB(4) = 10
+    pathB(5) = 2
+    pathB(6) = 13
+    pathB(7) = 26
+    pathB(8) = 15
+    pathB(9) = 19
+    pathB(10) = 8
+    pathB(11) = 4
+    pathB(12) = 12
+    pathB(13) = 16
+    pathB(14) = 27
+    pathB(15) = 23
+Fend
+
+Function MarcarVisitado(idx As Integer)
+    If visited(idx) = 0 Then
+        visited(idx) = 1
+        visitedCount = visitedCount + 1
+    EndIf
+Fend
+
+Function ImprimeIdx(prefijo$ As String, idx As Integer)
+    ' Convierte idx (1..30) a (col, fila) en matriz 6x5
+    r = (idx - 1) / 6 + 1               ' fila 1..5
+    c = idx - (r - 1) * 6               ' col  1..6
+    Print prefijo$, " idx=", idx, " -> (col=", c, ", fila=", r, ")"
+Fend
+
+Function Paletizado_01
+    ' ---- Pallet 6x5 (COLS=6, ROWS=5) ----
+    Pallet 1, Origen, PuntoX, PuntoY, 6, 5
+
+    ' ---- Cargar rutas de caballo ----
+    Call CargarRutas
+
+    ' ---- Inicializar visitados ----
+    For i = 1 To 30
+        visited(i) = 0
+    Next
+    visitedCount = 0
+
+    ' Posiciones guardadas iniciales
+    curA = pathA(1)    ' (1,1)
+    curB = pathB(1)    ' (6,5)
+
+    ' Marcar e imprimir estados iniciales
+    Call MarcarVisitado(curA)
+    Call MarcarVisitado(curB)
+    Print "Inicio cabalgado 2-huevos: matriz 6x5"
+    Call ImprimeIdx("H1 inicia en", curA)
+    Call ImprimeIdx("H2 inicia en", curB)
+    Print "Visitados únicos: ", visitedCount, "/30"
+
+    ' ---- Alternar movimientos ----
+    For k = 2 To 15
+
+        ' -------- Huevo 1 ----------
+        Call ImprimeIdx("H1: regresa a (PICK)", curA)
+        Call MarcarVisitado(curA)
+        
+        'Off Out_9
+        Jump Pallet(1, curA)              ' PICK
+        Off Out_9
+        Call ImprimeIdx("H1: va a (PLACE)", pathA(k))
+        Call MarcarVisitado(pathA(k))
+
+        Jump Pallet(1, pathA(k))          ' PLACE
+        On Out_9
+       ' Wait 1
+
+        curA = pathA(k)
+        Print "Visitados únicos: ", visitedCount, "/30"
+
+        ' -------- Huevo 2 ----------
+        Call ImprimeIdx("H2: regresa a (PICK)", curB)
+        Call MarcarVisitado(curB)
+
+       ' Off Out_9
+        Jump Pallet(1, curB)              ' PICK
+         Off Out_9
+        Call ImprimeIdx("H2: va a (PLACE)", pathB(k))
+        Call MarcarVisitado(pathB(k))
+
+        Jump Pallet(1, pathB(k))          ' PLACE
+        On Out_9
+        'Wait 1
+
+        curB = pathB(k)
+        Print "Visitados únicos: ", visitedCount, "/30"
+
+    Next
+
+    ' --- Fin del paletizado: asegurar ventosa y volver a Home ---
+    On Out_9
+    Print "Fin: visitados únicos totales = ", visitedCount, "/30"
+    Print "Regresando a Home..."
+    Jump Origen
+    Home
+Fend
+
+Function main
+    Motor On
+    Power High
+    Accel 100, 100
+    Speed 100
+    Home
+    On Out_9
+
+    Call Paletizado_01
+
+    ' Si prefieres con botón:
+    'Do
+    '    If In_9 = On Then
+    '        Call Paletizado_01
+    '    EndIf
+    'Loop
+Fend
+```
+
+### Diagrama de flujo de acciones del robot
+```mermaid
+  
+flowchart TD
+
+A[Inicio] --> A1[Encender motores]
+A1 --> A2[Configurar velocidad]
+A2 --> A3[Ir a Home]
+
+A3 --> B[Marcar H1 y H2 como visitadas]
+B --> C[contador = 2]
+
+C --> D{contador ≤ 30?}
+
+D -- No --> Z1[Ir a Home]
+Z1 --> Z2[Apagar motores]
+Z2 --> Z[Fin del proceso]
+
+D -- Sí --> H1P[H1: PICK]
+H1P --> H1EV0[EV = 0]
+H1EV0 --> H1PRINT1[Imprimir pos. actual H1]
+H1PRINT1 --> H1PL[H1: PLACE]
+H1PL --> H1EV1[EV = 1]
+H1EV1 --> H1PRINT2[Imprimir nueva pos. H1]
+H1PRINT2 --> ADD1[contador = contador + 1]
+
+ADD1 --> H2P[H2: PICK]
+H2P --> H2EV0[EV = 0]
+H2EV0 --> H2PRINT1[Imprimir pos. actual H2]
+H2PRINT1 --> H2PL[H2: PLACE]
+H2PL --> H2EV1[EV = 1]
+H2EV1 --> H2PRINT2[Imprimir nueva pos. H2]
+H2PRINT2 --> ADD2[contador = contador + 1]
+
+ADD2 --> D
+```
+
+ ## Vista de planta
+ <p align="center">
+    <img src="img/Top_view.png" width="800">
+    </p>
+
+
+
+## Resultados
+
+El resultado del trabajo realizado se resume en el siguiente video, en donde se incluye:
+* Simulación en EPSON RC+ 7.0 de la trayectoria realizada, con una visión adicional de la salida que controla el paso de aire a las ventosas.
+* Movimiento a los puntos escogidos en el robot real.
+* Ejecución real de la tarea en el robot EPSON T3-401S
+
+Como se puede ver en la ejecución real, la ventosa en contadas ocasiones no toma correctamente los huevos y por ello se mueven a mano al lugar a donde serían movidos. Para evitar esto y asegurar un movimiento preciso y confiable, se recomienda utilizar otro tipo de ventosas, que sean más adecuadas para la superficie a agarrar.
+
+<video width="1080" height="720" controls>
+  <source src="https://drive.google.com/file/d/18k76xkAO51neKHTGluXk8eAtn8Q8kalG/view?usp=sharing" type="video/mp4">
+  Tu navegador no soporta video HTML5.
+</video>
+
+[Aquí se puede ver el video de la simulacion y de la prueba con el Robot real :](https://drive.google.com/file/d/18k76xkAO51neKHTGluXk8eAtn8Q8kalG/view?usp=sharing)
+
+## Conclusiones
+
+* Se encontro que el software de los robots Epson tiene una interfaz amigable que permite programar rutinas con un lenguaje muy intutitivo conectandose al hardware de una manera muy simple.
+
+* Se pudo comprobar que una simple ventosa neumatica acompañada de un acople prootipado por manufactura aditiva basica(impresion 3D) se puede integrar con el Epson para ejecutar rutinas de paletizado de objetos no tan pesados como ping pongs o pelotas(inclusive huevos).
+
+* Se demostro que el buen uso de la IA puede ayudar a generar trayectorias complejas en relativo poco tiempo (como en este caso con la rutina en forma de caballo de ajedrez), permitiendo aumentar la productividad y dedicar tiempo a otras tareas como el diseño del gripper y la puesta a punto del Hardware involucrado.
+
+ * Como se pudo apreciar durante la ejecuacion real de la rutina la cubeta de huevos se movia mucho, razon por la cual en algunas ocasiones no se sujetaba bien el ping pong. Para resolver esto se propone fijar la cubeta con cinta o alguna tipo de adhesivo. Adiocnalmente se propone tener un sensor de vacio para poder corroborar el agarre del objeto en cuestion.
